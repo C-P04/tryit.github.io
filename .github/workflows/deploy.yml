@@ -1,8 +1,8 @@
-name: Build Laravel Frontend
+name: Build Laravel Frontend and Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]  # deploy otomatis setiap push ke main
 
 permissions:
   contents: read
@@ -13,29 +13,39 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      # Step 1: Ambil kode dari repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Setup PHP untuk composer install
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.2
+          extensions: mbstring, bcmath, intl
+          coverage: none
 
-      - name: Install Dependencies
+      # Step 3: Install dependencies Laravel (tanpa dev)
+      - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Install Node and Build
+      # Step 4: Setup NodeJS untuk Vite build
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
+
+      # Step 5: Install dependencies JS dan build frontend
+      - name: Build Frontend
         run: |
           npm ci
           npm run build
 
+      # Step 6: Upload hasil build ke artifact
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: public  # folder hasil build statis
+          path: public  # hasil build Laravel disimpan di folder public
 
   deploy:
     runs-on: ubuntu-latest
